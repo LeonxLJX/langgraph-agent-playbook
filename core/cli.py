@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from collections.abc import Callable
 
 import uvicorn
@@ -29,7 +30,8 @@ def run_agent_cli(
     parser = argparse.ArgumentParser(prog=service_name, description="LangGraph Agent")
     parser.add_argument("--serve", action="store_true", help="以 HTTP 服务方式启动")
     parser.add_argument("--host", default="0.0.0.0", help="服务监听地址")
-    parser.add_argument("--port", type=int, default=8000, help="服务端口")
+    # 默认端口优先读 $PORT（Hugging Face / 云平台会注入该环境变量），否则 8000
+    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8000")), help="服务端口")
     parser.add_argument("--message", help="一次性输入（不走服务模式时）")
     parser.add_argument("--thread-id", default=None, help="会话线程 id（用于 checkpoint 续跑）")
     args = parser.parse_args(argv)

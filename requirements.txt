@@ -12,3 +12,4 @@ sse-starlette>=2.1
 psycopg[binary]>=3.2
 python-dotenv>=1.0
 tenacity>=8.2
+streamlit>=1.30
