@@ -1,0 +1,153 @@
+# 本地一键起全部 15 个 Agent 服务（云部署前先在本地验一遍）。
+# 用法：
+#   docker compose up --build postgres      # 需要持久化的案例依赖的 PG（先起）
+#   docker compose up --build              # 起全部
+#   docker compose up --build case-01      # 只起某一个
+# 每个服务都暴露本地端口，例：curl localhost:8001/invoke
+name: langgraph-agent-playbook
+
+x-agent-common: &agent-common
+  build:
+    context: .
+    dockerfile: Dockerfile
+  environment: &agent-env
+    OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+    LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
+    LANGCHAIN_TRACING: ${LANGCHAIN_TRACING:-false}
+    LANGCHAIN_API_KEY: ${LANGCHAIN_API_KEY:-}
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: agent
+      POSTGRES_PASSWORD: agent
+      POSTGRES_DB: agent
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agent"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  case-01:
+    <<: *agent-common
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        CASE: 01_tool_call_parse
+    ports: ["8001:8000"]
+  case-02:
+    <<: *agent-common
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args: { CASE: 02_context_truncate }
+    ports: ["8002:8000"]
+  case-03:
+    <<: *agent-common
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args: { CASE: 03_loop_guard }
+    ports: ["8003:8000"]
+  case-04:
+    <<: *agent-common
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args: { CASE: 04_hallucinated_tool }
+    ports: ["8004:8000"]
+  case-05:
+    <<: *agent-common
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args: { CASE: 05_retry_backoff }
+    ports: ["8005:8000"]
+  case-06:
+    <<: *agent-common
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args: { CASE: 06_self_healing }
+    ports: ["8006:8000"]
+  case-07:
+    <<: *agent-common
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args: { CASE: 07_multi_agent_routing }
+    ports: ["8007:8000"]
+  case-08:
+    <<: *agent-common
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args: { CASE: 08_human_in_the_loop }
+    ports: ["8008:8000"]
+  case-09:
+    <<: *agent-common
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args: { CASE: 09_parallel_tools_idempotent }
+    ports: ["8009:8000"]
+  case-10:
+    <<: *agent-common
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args: { CASE: 10_persistence_resume }
+    ports: ["8010:8000"]
+    environment:
+      <<: *agent-env
+      POSTGRES_URI: postgresql://agent:agent@postgres:5432/agent
+    depends_on:
+      postgres:
+        condition: service_healthy
+  case-11:
+    <<: *agent-common
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args: { CASE: 11_structured_output }
+    ports: ["8011:8000"]
+  case-12:
+    <<: *agent-common
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args: { CASE: 12_streaming }
+    ports: ["8012:8000"]
+  case-13:
+    <<: *agent-common
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args: { CASE: 13_state_schema_evolution }
+    ports: ["8013:8000"]
+  case-14:
+    <<: *agent-common
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args: { CASE: 14_observability }
+    ports: ["8014:8000"]
+  case-15:
+    <<: *agent-common
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args: { CASE: 15_distributed_checkpoint }
+    ports: ["8015:8000"]
+    environment:
+      <<: *agent-env
+      POSTGRES_URI: postgresql://agent:agent@postgres:5432/agent
+    depends_on:
+      postgres:
+        condition: service_healthy

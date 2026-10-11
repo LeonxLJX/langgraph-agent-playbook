@@ -1,0 +1,26 @@
+# Render 蓝图：一键把 15 个案例部署成线上可访问的服务（免费档即可）。
+# 用法：在 Render 控制台 New -> Blueprint -> 选择本仓库，或直接推 GitHub 触发。
+# 每个服务：Root Directory = 仓库根，Dockerfile = Dockerfile，Build Args 注入 CASE。
+services:
+  # 需要持久化的案例共用一个 Postgres
+  - type: pserv
+    name: agent-pg
+    runtime: docker
+    plan: free
+    dockerfilePath: Dockerfile
+    buildArgs:
+      CASE: 10_persistence_resume
+    envVars: []
+  - type: web
+    name: case-01-tool-call-parse
+    runtime: docker
+    plan: free
+    dockerfilePath: Dockerfile
+    buildArgs:
+      CASE: 01_tool_call_parse
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+    autoDeploy: true
+  # ... 其余案例同构（CASE 换成对应目录名）。这里只列 1 个示例，其余在 Render 控制台
+  #     用同样方式添加，或按本文件注释批量生成。

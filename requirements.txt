@@ -1,0 +1,14 @@
+# 运行时依赖（生产）
+langgraph>=0.2.60
+langgraph-checkpoint-postgres>=2.0.10
+langchain-core>=0.3.20
+langchain-openai>=0.2.10
+langchain-anthropic>=0.2.10
+pydantic>=2.7
+pydantic-settings>=2.3
+fastapi>=0.115
+uvicorn[standard]>=0.30
+sse-starlette>=2.1
+psycopg[binary]>=3.2
+python-dotenv>=1.0
+tenacity>=8.2
